@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}Processes - Deadlock-Safe Task Manager{% endblock %}
+{% block page_title %}OS Processes{% endblock %}
+
+{% block content %}
+<div class="card p-3 shadow-sm mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h6 class="fw-bold mb-0">Processes Overview</h6>
+      <small class="text-muted">Manage tasks, their resource allocations, and maximum claims.</small>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createProcessModal" onclick="prepareCreateModal()">
+      <i class="bi bi-plus-circle me-1"></i> New Process
+    </button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>PID</th>
+          <th>Process Name</th>
+          <th>State</th>
+          <th>Allocated Vector</th>
+          <th>Max Demand</th>
+          <th>Remaining Need</th>
+          <th>Pending Request</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="processes-table-body">
+        <tr><td colspan="8" class="text-center text-muted py-4">Loading processes...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal: Create Process -->
+<div class="modal fade" id="createProcessModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold"><i class="bi bi-cpu me-2"></i>Create New Process</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="createProcessForm">
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">PID (e.g. P5, T1)</label>
+              <input type="text" class="form-control" id="new-pid" required placeholder="P5">
+            </div>
+            <div class="col-md-8">
+              <label class="form-label fw-semibold">Process Name</label>
+              <input type="text" class="form-control" id="new-pname" required placeholder="Data Ingestion Task">
+            </div>
+          </div>
+
+          <h6 class="fw-bold mt-4 mb-2">Resource Vectors</h6>
+          <p class="small text-muted mb-3">Specify Maximum Claim and initial Allocation for each resource type.</p>
+
+          <div id="new-proc-resource-inputs">
+            <!-- Dynamically populated per system resource -->
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitCreateProcess()">Create Process</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Request Resources -->
+<div class="modal fade" id="requestModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold"><i class="bi bi-send me-2"></i>Request Resources (<span id="req-modal-pid"></span>)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="small text-muted">This request will be evaluated by Banker's Resource-Request Algorithm. If safe, it will be granted; otherwise denied/blocked.</p>
+        <div id="request-vector-inputs"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitResourceRequest()">Submit Request</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Release Resources -->
+<div class="modal fade" id="releaseModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold"><i class="bi bi-box-arrow-right me-2"></i>Release Resources (<span id="rel-modal-pid"></span>)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="small text-muted">Select how many allocated units the process will voluntarily release back to the available pool.</p>
+        <div id="release-vector-inputs"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" onclick="submitResourceRelease()">Release Resources</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/processes.js') }}"></script>
+{% endblock %}

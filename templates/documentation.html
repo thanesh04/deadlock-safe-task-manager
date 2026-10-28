@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% block title %}Operating Systems Theory & Documentation{% endblock %}
+{% block page_title %}Academic Operating Systems Reference Guide{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <!-- Table of Contents Sidebar -->
+  <div class="col-12 col-lg-3">
+    <div class="card p-3 shadow-sm sticky-top" style="top: 80px;">
+      <h6 class="fw-bold mb-3"><i class="bi bi-bookmarks me-2 text-primary"></i>Topics</h6>
+      <nav class="nav nav-pills flex-column small">
+        <a class="nav-link py-1 active" href="#viva-docs">Academic Docs & Viva Guides</a>
+        <a class="nav-link py-1" href="#coffman-conditions">1. The 4 Coffman Conditions</a>
+        <a class="nav-link py-1" href="#prevention-avoidance">2. Prevention vs Avoidance vs Detection</a>
+        <a class="nav-link py-1" href="#bankers-algorithm">3. Banker's Safety Algorithm</a>
+        <a class="nav-link py-1" href="#resource-request">4. Banker's Resource-Request</a>
+        <a class="nav-link py-1" href="#deadlock-detection">5. Deadlock Detection Algorithm</a>
+        <a class="nav-link py-1" href="#graph-models">6. RAG vs Wait-For Graphs</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Documentation Body -->
+  <div class="col-12 col-lg-9">
+    <!-- Academic Docs Library Banner -->
+    <section id="viva-docs" class="card p-4 shadow-sm mb-4 border-start border-4 border-primary">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold text-primary mb-0"><i class="bi bi-folder2-open me-2"></i>Academic Documentation &amp; Viva Materials</h4>
+        <span class="badge bg-primary">19 Dedicated Guides</span>
+      </div>
+      <p class="small text-muted mb-3">
+        Comprehensive academic markdown documentation has been compiled in the <code>docs/</code> directory to prepare you for your B.Tech viva and teacher demonstration:
+      </p>
+
+      <div class="row g-2 small">
+        <div class="col-md-6">
+          <div class="p-2 border rounded bg-light">
+            <strong class="text-dark"><i class="bi bi-mortarboard me-1 text-warning"></i> Viva &amp; Demo Guides</strong>
+            <ul class="ps-3 mb-0 text-muted mt-1">
+              <li><code>docs/scheduler_demonstration_guide.md</code> (⭐ Complete Scheduler Script)</li>
+              <li><code>docs/demo_guide.md</code> (10-15 Min Teacher Script)</li>
+              <li><code>docs/viva_questions.md</code> (35 Viva Q&amp;A)</li>
+              <li><code>docs/real_vs_simulated.md</code> (Master Comparison)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-2 border rounded bg-light">
+            <strong class="text-dark"><i class="bi bi-cpu me-1 text-primary"></i> Algorithm &amp; Architecture Guides</strong>
+            <ul class="ps-3 mb-0 text-muted mt-1">
+              <li><code>docs/novelty_and_architectural_link.md</code> (⭐ Project Novelty Thesis)</li>
+              <li><code>docs/deadlock_aware_scheduler.md</code> (Scheduler Engine)</li>
+              <li><code>docs/bankers_algorithm.md</code> &amp; <code>resource_request_flow.md</code></li>
+              <li><code>docs/graphs.md</code> &amp; <code>deadlock_detection.md</code></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Section 1 -->
+    <section id="coffman-conditions" class="card p-4 shadow-sm mb-4">
+      <h4 class="fw-bold text-primary mb-3">1. The 4 Necessary Coffman Conditions</h4>
+      <p>A deadlock situation can arise if and only if the following four conditions hold simultaneously in a system:</p>
+      
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="p-3 border rounded bg-light h-100">
+            <h6 class="fw-bold"><i class="bi bi-lock-fill text-danger me-1"></i> 1. Mutual Exclusion</h6>
+            <p class="small text-muted mb-0">At least one resource must be held in a non-shareable mode; only one process at a time can use the resource.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-3 border rounded bg-light h-100">
+            <h6 class="fw-bold"><i class="bi bi-hand-index-thumb-fill text-warning me-1"></i> 2. Hold and Wait</h6>
+            <p class="small text-muted mb-0">A process must be holding at least one resource and simultaneously waiting to acquire additional resources held by others.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-3 border rounded bg-light h-100">
+            <h6 class="fw-bold"><i class="bi bi-slash-circle-fill text-info me-1"></i> 3. No Preemption</h6>
+            <p class="small text-muted mb-0">Resources cannot be forcibly taken away; they can only be released voluntarily by the process holding them after completion.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-3 border rounded bg-light h-100">
+            <h6 class="fw-bold"><i class="bi bi-arrow-repeat text-danger me-1"></i> 4. Circular Wait</h6>
+            <p class="small text-muted mb-0">A set of waiting processes {P<sub>0</sub>, P<sub>1</sub>, ..., P<sub>n</sub>} exists such that P<sub>0</sub> waits for P<sub>1</sub>, P<sub>1</sub> waits for P<sub>2</sub>, and P<sub>n</sub> waits for P<sub>0</sub>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2 -->
+    <section id="prevention-avoidance" class="card p-4 shadow-sm mb-4">
+      <h4 class="fw-bold text-dark mb-3">2. Prevention vs Avoidance vs Detection vs Recovery</h4>
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>Strategy</th>
+              <th>Core Concept</th>
+              <th>Knowledge Required</th>
+              <th>Trade-off</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Deadlock Prevention</strong></td>
+              <td>Invalidates at least one of the 4 Coffman conditions at design time.</td>
+              <td>Resource ordering or lock policies.</td>
+              <td>Low resource utilization and possible starvation.</td>
+            </tr>
+            <tr>
+              <td><strong>Deadlock Avoidance</strong></td>
+              <td>Dynamically assesses request safety before granting (Banker's Algorithm).</td>
+              <td>Prior knowledge of maximum claims (Max matrix).</td>
+              <td>Processes must declare future resource demand in advance.</td>
+            </tr>
+            <tr>
+              <td><strong>Deadlock Detection</strong></td>
+              <td>Allows requests freely; periodically examines state for existing deadlocks.</td>
+              <td>Current Allocation and active Request vectors only.</td>
+              <td>Runtime overhead of cycle/detection searches.</td>
+            </tr>
+            <tr>
+              <td><strong>Deadlock Recovery</strong></td>
+              <td>Resolves an existing deadlock via process termination or preemption.</td>
+              <td>Victim selection heuristic (cost, priority).</td>
+              <td>Work loss from terminated processes or rollback complexity.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 3 -->
+    <section id="bankers-algorithm" class="card p-4 shadow-sm mb-4">
+      <h4 class="fw-bold text-success mb-3">3. Banker's Algorithm (Safety Algorithm)</h4>
+      <p>Devised by Edsger Dijkstra, the Safety Algorithm determines whether a system is in a safe state:</p>
+      <div class="bg-light p-3 rounded font-monospace small mb-3">
+        1. Let Work = Available, and Finish[i] = false for i = 0, 1, ..., n-1.<br>
+        2. Find an index i such that both:<br>
+        &nbsp;&nbsp;&nbsp;a. Finish[i] == false<br>
+        &nbsp;&nbsp;&nbsp;b. Need[i] &le; Work<br>
+        &nbsp;&nbsp;&nbsp;If no such i exists, go to step 4.<br>
+        3. Work = Work + Allocation[i]<br>
+        &nbsp;&nbsp;&nbsp;Finish[i] = true<br>
+        &nbsp;&nbsp;&nbsp;Append P_i to safe sequence, then return to step 2.<br>
+        4. If Finish[i] == true for all i, then the system is in a SAFE STATE.
+      </div>
+    </section>
+
+    <!-- Section 4 -->
+    <section id="resource-request" class="card p-4 shadow-sm mb-4">
+      <h4 class="fw-bold text-primary mb-3">4. Banker's Resource-Request Algorithm</h4>
+      <p>When process P<sub>i</sub> makes a request vector <code>Request[i]</code>:</p>
+      <ol class="small text-muted mb-0">
+        <li><strong>Step 1:</strong> If <code>Request[i] &le; Need[i]</code>, proceed to Step 2. Otherwise, raise error (process exceeded maximum claim).</li>
+        <li><strong>Step 2:</strong> If <code>Request[i] &le; Available</code>, proceed to Step 3. Otherwise, P<sub>i</sub> must wait (insufficient resources available).</li>
+        <li><strong>Step 3:</strong> Pretend to allocate requested resources to P<sub>i</sub>:
+          <pre class="bg-light p-2 mt-1 rounded font-monospace">Available = Available - Request[i]
+Allocation[i] = Allocation[i] + Request[i]
+Need[i] = Need[i] - Request[i]</pre>
+        </li>
+        <li><strong>Step 4:</strong> Run Safety Algorithm on tentative state.</li>
+        <li><strong>Step 5:</strong> If SAFE &rarr; commit allocation. If UNSAFE &rarr; rollback tentative state, restore previous state, and P<sub>i</sub> waits.</li>
+      </ol>
+    </section>
+
+    <!-- Section 5 -->
+    <section id="deadlock-detection" class="card p-4 shadow-sm mb-4">
+      <h4 class="fw-bold text-danger mb-3">5. Deadlock Detection Algorithm (Multi-Instance)</h4>
+      <p>Employed when processes do not declare maximum demand. Uses current <code>Available</code>, <code>Allocation</code>, and active <code>Request</code> vectors:</p>
+      <div class="bg-light p-3 rounded font-monospace small">
+        1. Work = Available<br>
+        2. For i = 0 to n-1:<br>
+        &nbsp;&nbsp;&nbsp;If Allocation[i] &ne; 0, Finish[i] = false; else Finish[i] = true.<br>
+        3. Find index i such that:<br>
+        &nbsp;&nbsp;&nbsp;Finish[i] == false AND Request[i] &le; Work<br>
+        &nbsp;&nbsp;&nbsp;If found: Work = Work + Allocation[i]; Finish[i] = true; repeat step 3.<br>
+        4. If Finish[i] == false for any i, the system is in DEADLOCK, and process P_i is deadlocked.
+      </div>
+    </section>
+
+    <!-- Section 6 -->
+    <section id="graph-models" class="card p-4 shadow-sm mb-4">
+      <h4 class="fw-bold text-dark mb-3">6. Resource Allocation Graph (RAG) vs Wait-For Graph (WFG)</h4>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="p-3 border rounded bg-light h-100">
+            <h6 class="fw-bold">Resource Allocation Graph (RAG)</h6>
+            <ul class="small text-muted ps-3 mb-0">
+              <li>Process nodes (circles) and Resource nodes (rectangles).</li>
+              <li>Directed edge R<sub>j</sub> &rarr; P<sub>i</sub>: Assignment / Allocation edge.</li>
+              <li>Directed edge P<sub>i</sub> &rarr; R<sub>j</sub>: Request edge.</li>
+              <li>Cycle in single-unit resources implies guaranteed deadlock. In multi-unit resources, cycle is necessary but not sufficient.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-3 border rounded bg-light h-100">
+            <h6 class="fw-bold">Wait-For Graph (WFG)</h6>
+            <ul class="small text-muted ps-3 mb-0">
+              <li>Only Process nodes (P<sub>i</sub>).</li>
+              <li>Directed edge P<sub>i</sub> &rarr; P<sub>j</sub> indicates P<sub>i</sub> is waiting for a resource held by P<sub>j</sub>.</li>
+              <li>Obtained by collapsing resource nodes from the RAG.</li>
+              <li>Cycle in single-unit WFG guarantees deadlock.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

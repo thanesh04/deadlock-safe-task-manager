@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}Real System Monitor - Deadlock-Safe Task Manager{% endblock %}
+{% block page_title %}Host Operating System Monitor (psutil){% endblock %}
+
+{% block content %}
+<div class="alert alert-warning border-start border-4 border-warning mb-4">
+  <div class="d-flex align-items-center gap-2">
+    <i class="bi bi-exclamation-triangle-fill fs-4 text-warning"></i>
+    <div>
+      <strong>REAL SYSTEM METRICS NOTICE:</strong> The telemetry shown on this screen originates from your actual physical host machine (via Python's <code>psutil</code> library).
+      <div class="small text-muted">Academic Rule: Real OS hardware processes are completely isolated and are <strong>NEVER</strong> fed into simulated Banker's Algorithm or Deadlock Detection models.</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Host CPU Card -->
+  <div class="col-12 col-md-6 col-lg-3">
+    <div class="card p-3 shadow-sm h-100 border-start border-4 border-primary">
+      <div class="stat-title">Host CPU Utilization</div>
+      <div class="stat-value text-primary mt-1" id="real-cpu-val">0%</div>
+      <div class="small text-muted mt-2" id="real-cpu-cores">Loading cores...</div>
+    </div>
+  </div>
+
+  <!-- Host RAM Card -->
+  <div class="col-12 col-md-6 col-lg-3">
+    <div class="card p-3 shadow-sm h-100 border-start border-4 border-info">
+      <div class="stat-title">Host Memory (RAM)</div>
+      <div class="stat-value text-info mt-1" id="real-mem-val">0%</div>
+      <div class="small text-muted mt-2" id="real-mem-sub">0 / 0 GB Used</div>
+    </div>
+  </div>
+
+  <!-- Host Swap Card -->
+  <div class="col-12 col-md-6 col-lg-3">
+    <div class="card p-3 shadow-sm h-100 border-start border-4 border-secondary">
+      <div class="stat-title">Swap Memory</div>
+      <div class="stat-value text-secondary mt-1" id="real-swap-val">0%</div>
+      <div class="small text-muted mt-2">Paging / Virtual Memory</div>
+    </div>
+  </div>
+
+  <!-- Host Process Count Card -->
+  <div class="col-12 col-md-6 col-lg-3">
+    <div class="card p-3 shadow-sm h-100 border-start border-4 border-success">
+      <div class="stat-title">Host OS Process Count</div>
+      <div class="stat-value text-success mt-1" id="real-os-proc-count">0</div>
+      <div class="small text-muted mt-2">Active Windows OS Tasks</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    <div class="card p-3 shadow-sm">
+      <h6 class="fw-bold mb-3"><i class="bi bi-cpu me-2 text-primary"></i>Live Host CPU Gauge</h6>
+      <div class="progress mb-3" style="height: 24px;">
+        <div id="real-cpu-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: 0%;">0%</div>
+      </div>
+      <p class="small text-muted mb-0">Hardware utilization on host operating system.</p>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card p-3 shadow-sm">
+      <h6 class="fw-bold mb-3"><i class="bi bi-memory me-2 text-info"></i>Live Host RAM Gauge</h6>
+      <div class="progress mb-3" style="height: 24px;">
+        <div id="real-mem-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-info" style="width: 0%;">0%</div>
+      </div>
+      <p class="small text-muted mb-0">Physical RAM allocation on host machine.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  async function refreshSystemMonitor() {
+    try {
+      const res = await fetch('/api/system-monitor');
+      const data = await res.json();
+
+      document.getElementById('real-cpu-val').innerText = `${data.cpu_percent}%`;
+      document.getElementById('real-cpu-cores').innerText = `${data.cpu_cores_physical} Physical Cores, ${data.cpu_cores_logical} Logical`;
+      document.getElementById('real-cpu-bar').style.width = `${data.cpu_percent}%`;
+      document.getElementById('real-cpu-bar').innerText = `${data.cpu_percent}%`;
+
+      document.getElementById('real-mem-val').innerText = `${data.memory_percent}%`;
+      document.getElementById('real-mem-sub').innerText = `${data.memory_used_gb} / ${data.memory_total_gb} GB Used`;
+      document.getElementById('real-mem-bar').style.width = `${data.memory_percent}%`;
+      document.getElementById('real-mem-bar').innerText = `${data.memory_percent}%`;
+
+      document.getElementById('real-swap-val').innerText = `${data.swap_percent}%`;
+      document.getElementById('real-os-proc-count').innerText = data.real_process_count;
+    } catch (e) {
+      console.error("Monitor fetch error", e);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    refreshSystemMonitor();
+    setInterval(refreshSystemMonitor, 3000);
+  });
+</script>
+{% endblock %}

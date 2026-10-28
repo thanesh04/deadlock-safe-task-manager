@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Scenarios & Demo Mode - Deadlock-Safe Task Manager{% endblock %}
+{% block page_title %}Operating Systems Scenarios & Viva Demo Presets{% endblock %}
+
+{% block content %}
+<!-- Viva Demo Mode Highlight Banner -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="card p-3 shadow-sm border-start border-4 border-warning bg-light">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <h6 class="fw-bold mb-1 text-dark"><i class="bi bi-mortarboard-fill text-warning me-2"></i>One-Click Academic Viva Demonstrations</h6>
+          <small class="text-muted">Instantly load standard OS conditions, navigate to the relevant analysis engine, and demonstrate textbook algorithm behavior.</small>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-sm btn-success fw-semibold" onclick="runDemo('safe')">
+            <i class="bi bi-shield-check me-1"></i> Demo Safe State
+          </button>
+          <button class="btn btn-sm btn-warning fw-semibold text-dark" onclick="runDemo('unsafe')">
+            <i class="bi bi-exclamation-triangle me-1"></i> Demo Unsafe State
+          </button>
+          <button class="btn btn-sm btn-danger fw-semibold" onclick="runDemo('deadlock')">
+            <i class="bi bi-x-octagon me-1"></i> Demo Deadlock
+          </button>
+          <button class="btn btn-sm btn-primary fw-semibold" onclick="runDemo('request')">
+            <i class="bi bi-send me-1"></i> Demo Request
+          </button>
+          <button class="btn btn-sm btn-info fw-semibold text-dark" onclick="runDemo('recovery')">
+            <i class="bi bi-wrench me-1"></i> Demo Recovery
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Predefined Scenarios Catalog -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="card p-3 shadow-sm">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0"><i class="bi bi-collection-play me-2 text-primary"></i>Predefined Scenarios Catalog</h6>
+        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#customScenarioModal">
+          <i class="bi bi-plus-square me-1"></i> Custom Scenario JSON
+        </button>
+      </div>
+
+      <div class="row g-3" id="predefined-scenarios-container">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- User-Saved Custom Scenarios -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="card p-3 shadow-sm">
+      <h6 class="fw-bold mb-3"><i class="bi bi-bookmark-star me-2 text-warning"></i>Saved Custom Scenarios</h6>
+      <div id="custom-scenarios-container">
+        <p class="small text-muted mb-0">No custom scenarios saved yet.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Custom Scenario JSON Builder -->
+<div class="modal fade" id="customScenarioModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold"><i class="bi bi-code-slash me-2"></i>Create Custom Scenario (JSON)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="customScenarioForm">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Scenario Name</label>
+            <input type="text" class="form-control" id="custom-scen-name" required placeholder="Custom Multi-Core Deadlock">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Description</label>
+            <textarea class="form-control" id="custom-scen-desc" rows="2" placeholder="Explaining the process and resource arrangement..."></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Configuration (JSON)</label>
+            <textarea class="form-control font-monospace small" id="custom-scen-json" rows="12"></textarea>
+            <div class="form-text">Must follow standard schema with resources, processes, allocation, maximum, and requests.</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitCustomScenario()">Save Scenario</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/scenarios.js') }}"></script>
+{% endblock %}

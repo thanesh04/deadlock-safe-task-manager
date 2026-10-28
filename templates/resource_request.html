@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Resource Request Algorithm - Deadlock-Safe Task Manager{% endblock %}
+{% block page_title %}Banker's Resource-Request Algorithm{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <!-- Request Form Card -->
+  <div class="col-12 col-lg-5">
+    <div class="card p-3 shadow-sm h-100">
+      <h6 class="fw-bold mb-3"><i class="bi bi-send-check text-primary me-2"></i>Submit Resource Request</h6>
+      <p class="small text-muted mb-3">
+        When a process requests instances, the OS checks if the request is valid (within remaining need), can be satisfied currently (within available), and maintains system safety before committing.
+      </p>
+
+      <form id="resource-request-form">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Requesting Process (P<sub>i</sub>)</label>
+          <select class="form-select" id="req-process-select" onchange="updateProcessContext()">
+            <option value="">-- Select Process --</option>
+          </select>
+        </div>
+
+        <!-- Live Need and Allocation info for selected process -->
+        <div class="alert alert-light border small mb-3 d-none" id="proc-context-box">
+          <div class="fw-bold mb-1">Process Claim Context:</div>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Allocated:</span>
+            <code id="proc-context-alloc">[0, 0, 0]</code>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Maximum Need:</span>
+            <code id="proc-context-max">[0, 0, 0]</code>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Remaining Need:</span>
+            <code class="text-warning fw-bold" id="proc-context-need">[0, 0, 0]</code>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Request Vector</label>
+          <div id="req-vector-inputs" class="border rounded p-2 bg-light">
+            <span class="text-muted small">Select a process to configure resource inputs.</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary w-100 fw-semibold" id="btn-submit-request" onclick="submitRequestAlgorithm()">
+          <i class="bi bi-arrow-right-circle me-1"></i> Evaluate &amp; Allocate Request
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Stepper Results Card -->
+  <div class="col-12 col-lg-7">
+    <div class="card p-3 shadow-sm h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0"><i class="bi bi-diagram-3-fill me-2 text-dark"></i>5-Step Decision Stepper</h6>
+        <span class="badge bg-secondary-subtle text-secondary" id="request-decision-badge">Awaiting Submission</span>
+      </div>
+
+      <div id="request-stepper-container">
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-send display-4 text-secondary mb-3 d-block"></i>
+          Select a process and request vector, then click <strong>Evaluate &amp; Allocate Request</strong>.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/resource_request.js') }}"></script>
+{% endblock %}

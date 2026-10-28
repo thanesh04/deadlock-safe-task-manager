@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}Event History - Deadlock-Safe Task Manager{% endblock %}
+{% block page_title %}Simulation Audit Log & Event History{% endblock %}
+
+{% block content %}
+<div class="card p-3 shadow-sm mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+    <div>
+      <h6 class="fw-bold mb-0">System Audit Trail</h6>
+      <small class="text-muted">Chronological log of process creations, allocations, requests, safety checks, and deadlock recoveries.</small>
+    </div>
+    <div class="d-flex gap-2">
+      <input type="text" class="form-control form-control-sm" id="log-search-input" placeholder="Search events..." onkeyup="filterLogs()">
+      <button class="btn btn-sm btn-outline-danger" onclick="clearLogs()">
+        <i class="bi bi-trash me-1"></i> Clear Logs
+      </button>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th style="width: 170px;">Timestamp</th>
+          <th style="width: 200px;">Event Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody id="logs-table-body">
+        <tr><td colspan="3" class="text-center text-muted py-4">Loading audit logs...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  let allLogs = [];
+
+  async function loadLogs() {
+    try {
+      const res = await fetch('/api/logs?limit=200');
+      allLogs = await res.json();
+      renderLogsTable(allLogs);
+    } catch (err) {
+      showToast('Failed to load logs: ' + err, 'error');
+    }
+  }
+
+  function renderLogsTable(logs) {
+    const tbody = document.getElementById('logs-table-body');
+    if (!logs || logs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4">No events logged yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = logs.map(l => {
+      let badgeClass = 'badge bg-secondary';
+      if (l.event_type.includes('DEADLOCK')) badgeClass = 'badge bg-danger';
+      else if (l.event_type.includes('GRANTED') || l.event_type.includes('SAFE')) badgeClass = 'badge bg-success';
+      else if (l.event_type.includes('DENIED') || l.event_type.includes('TERMINATED')) badgeClass = 'badge bg-warning text-dark';
+      else if (l.event_type.includes('CREATED')) badgeClass = 'badge bg-primary';
+
+      return `
+        <tr>
+          <td class="small text-muted font-monospace">${l.timestamp || ''}</td>
+          <td><span class="${badgeClass}">${l.event_type}</span></td>
+          <td class="small text-secondary">${l.description}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function filterLogs() {
+    const query = document.getElementById('log-search-input').value.toLowerCase();
+    const filtered = allLogs.filter(l => 
+      (l.event_type && l.event_type.toLowerCase().includes(query)) ||
+      (l.description && l.description.toLowerCase().includes(query))
+    );
+    renderLogsTable(filtered);
+  }
+
+  async function clearLogs() {
+    if (!confirm('Clear all event logs?')) return;
+    try {
+      await fetch('/api/logs', { method: 'DELETE' });
+      showToast('Event history cleared.', 'success');
+      loadLogs();
+    } catch (err) {
+      showToast('Error clearing logs: ' + err, 'error');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', loadLogs);
+</script>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Settings - Deadlock-Safe Task Manager{% endblock %}
+{% block page_title %}Simulation Configuration & Database Maintenance{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-12 col-lg-6">
+    <!-- Maintenance Card -->
+    <div class="card p-3 shadow-sm h-100">
+      <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-sliders me-2 text-primary"></i>Simulation Controls</h6>
+      
+      <div class="mb-4">
+        <label class="fw-semibold small d-block mb-1">Restore Default Safe State</label>
+        <p class="small text-muted mb-2">Restores the standard 5-process, 3-resource safe state textbook example.</p>
+        <button class="btn btn-outline-primary" onclick="quickReset()">
+          <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Simulation
+        </button>
+      </div>
+
+      <hr>
+
+      <div class="mb-2">
+        <label class="fw-semibold small text-danger d-block mb-1">Danger Zone: Clear All Data</label>
+        <p class="small text-muted mb-2">Purges all active processes, resource pools, pending requests, and event history from the SQLite database.</p>
+        <button class="btn btn-danger" onclick="clearAllData()">
+          <i class="bi bi-trash3-fill me-1"></i> Wipe All Simulation Data
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <!-- System Environment Card -->
+    <div class="card p-3 shadow-sm h-100">
+      <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-database-check me-2 text-success"></i>System Environment</h6>
+      <ul class="list-group list-group-flush small">
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span>Backend Framework</span>
+          <strong>Flask 3.1 &amp; Python 3.14</strong>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span>Database Engine</span>
+          <strong>SQLite (SQLAlchemy ORM)</strong>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span>Graph Rendering Engine</span>
+          <strong>Cytoscape.js 3.28</strong>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span>Telemetry Library</span>
+          <strong>psutil</strong>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span>Academic Project Title</span>
+          <strong>Deadlock-Safe Task Manager</strong>
+        </li>
+      </ul>
+
+      <div class="mt-4">
+        <button class="btn btn-outline-secondary w-100" onclick="exportStateJson()">
+          <i class="bi bi-download me-1"></i> Export System Matrices (JSON)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  async function clearAllData() {
+    if (!confirm('Are you absolutely sure you want to delete all processes, resources, allocations, and logs?')) return;
+    try {
+      const res = await fetch('/api/simulation/clear', { method: 'POST' });
+      const data = await res.json();
+      showToast(data.message || 'Data cleared.', 'warning');
+      setTimeout(() => location.reload(), 600);
+    } catch (e) {
+      showToast('Error clearing data: ' + e, 'error');
+    }
+  }
+
+  async function exportStateJson() {
+    try {
+      const res = await fetch('/api/matrices');
+      const data = await res.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `os_matrices_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      showToast('Export failed: ' + e, 'error');
+    }
+  }
+</script>
+{% endblock %}

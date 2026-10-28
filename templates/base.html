@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Deadlock-Safe Task Manager{% endblock %} | OS Project</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  
+  <!-- Cytoscape.js for Graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
+  <!-- Chart.js for Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <i class="bi bi-cpu-fill brand-icon"></i>
+        <div>
+          <div class="brand-title">Deadlock-Safe</div>
+          <div class="brand-sub">OS Task Manager</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-label">Core Functions</div>
+        <a href="{{ url_for('dashboard.index') }}" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">
+          <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        <a href="{{ url_for('processes_page.index') }}" class="nav-link {% if active_page == 'processes' %}active{% endif %}">
+          <i class="bi bi-terminal"></i> Processes
+        </a>
+        <a href="{{ url_for('resources_page.index') }}" class="nav-link {% if active_page == 'resources' %}active{% endif %}">
+          <i class="bi bi-hdd-network"></i> Resources
+        </a>
+        <a href="{{ url_for('dashboard.matrices_view') }}" class="nav-link {% if active_page == 'matrices' %}active{% endif %}">
+          <i class="bi bi-grid-3x3"></i> System Matrices
+        </a>
+
+        <div class="nav-label">OS Algorithms</div>
+        <a href="{{ url_for('algorithms_page.safety_view') }}" class="nav-link {% if active_page == 'safety' %}active{% endif %}">
+          <i class="bi bi-shield-check"></i> Safety Analysis
+        </a>
+        <a href="{{ url_for('algorithms_page.resource_request_view') }}" class="nav-link {% if active_page == 'resource_request' %}active{% endif %}">
+          <i class="bi bi-send-check"></i> Resource Request
+        </a>
+        <a href="{{ url_for('algorithms_page.deadlock_detection_view') }}" class="nav-link {% if active_page == 'deadlock_detection' %}active{% endif %}">
+          <i class="bi bi-exclamation-octagon"></i> Deadlock Detection
+        </a>
+        <a href="{{ url_for('dashboard.graphs_view') }}" class="nav-link {% if active_page == 'graphs' %}active{% endif %}">
+          <i class="bi bi-diagram-3"></i> Graphs (RAG / WFG)
+        </a>
+        <a href="{{ url_for('scheduler_page.index') }}" class="nav-link {% if active_page == 'scheduler' %}active{% endif %}">
+          <i class="bi bi-clock-history text-info"></i> CPU & Task Scheduler
+        </a>
+
+        <div class="nav-label">Scenarios</div>
+        <a href="{{ url_for('scenarios_page.index') }}" class="nav-link {% if active_page == 'scenarios' %}active{% endif %}">
+          <i class="bi bi-collection-play"></i> Scenarios & Demos
+        </a>
+        <a href="{{ url_for('logs_page.index') }}" class="nav-link {% if active_page == 'logs' %}active{% endif %}">
+          <i class="bi bi-journal-text"></i> Event History
+        </a>
+
+        <div class="nav-label">System & Reference</div>
+        <a href="{{ url_for('dashboard.monitor_view') }}" class="nav-link {% if active_page == 'monitor' %}active{% endif %}">
+          <i class="bi bi-activity"></i> Real OS Monitor
+        </a>
+        <a href="{{ url_for('dashboard.documentation_view') }}" class="nav-link {% if active_page == 'documentation' %}active{% endif %}">
+          <i class="bi bi-book"></i> Documentation
+        </a>
+        <a href="{{ url_for('dashboard.settings_view') }}" class="nav-link {% if active_page == 'settings' %}active{% endif %}">
+          <i class="bi bi-gear"></i> Settings / Reset
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="d-flex align-items-center gap-3">
+          <h5 class="mb-0 fw-bold text-dark">{% block page_title %}Dashboard{% endblock %}</h5>
+          <span id="global-system-status" class="badge-status badge-ready">
+            <i class="bi bi-circle-fill" style="font-size:0.5rem"></i> Checking Status...
+          </span>
+        </div>
+
+        <!-- Quick Demo & Controls Toolbar -->
+        <div class="d-flex align-items-center gap-2">
+          <!-- Demo Mode Dropdown -->
+          <div class="dropdown">
+            <button class="btn btn-sm btn-outline-primary dropdown-toggle fw-semibold" type="button" data-bs-toggle="dropdown">
+              <i class="bi bi-lightning-charge-fill text-warning"></i> Demo Mode
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+              <li><h6 class="dropdown-header">Viva Demonstration Presets</h6></li>
+              <li><a class="dropdown-item" href="javascript:void(0)" onclick="runDemo('safe')"><i class="bi bi-shield-check text-success me-2"></i>Demo Safe State (Banker's)</a></li>
+              <li><a class="dropdown-item" href="javascript:void(0)" onclick="runDemo('unsafe')"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Demo Unsafe State</a></li>
+              <li><a class="dropdown-item" href="javascript:void(0)" onclick="runDemo('deadlock')"><i class="bi bi-x-octagon text-danger me-2"></i>Demo Deadlock (2 Processes)</a></li>
+              <li><a class="dropdown-item" href="javascript:void(0)" onclick="runDemo('circular_deadlock')"><i class="bi bi-arrow-repeat text-danger me-2"></i>Demo 3-Process Circular Deadlock</a></li>
+              <li><a class="dropdown-item" href="javascript:void(0)" onclick="runDemo('request')"><i class="bi bi-send text-primary me-2"></i>Demo Resource Request</a></li>
+              <li><a class="dropdown-item" href="javascript:void(0)" onclick="runDemo('recovery')"><i class="bi bi-wrench-adjustable text-info me-2"></i>Demo Deadlock Recovery</a></li>
+            </ul>
+          </div>
+
+          <!-- Quick Scenario Selector -->
+          <button class="btn btn-sm btn-outline-secondary" onclick="quickReset()" title="Reset simulation to default state">
+            <i class="bi bi-arrow-counterclockwise"></i> Reset
+          </button>
+        </div>
+      </header>
+
+      <!-- Page Body -->
+      <div class="page-body">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+    <div id="appToast" class="toast align-items-center text-white bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" id="toastMessage">Notification message</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Core Common JavaScript -->
+  <script>
+    function showToast(message, type = 'info') {
+      const toastEl = document.getElementById('appToast');
+      const toastBody = document.getElementById('toastMessage');
+      toastBody.innerText = message;
+      toastEl.className = 'toast align-items-center text-white border-0 ' + 
+        (type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : type === 'warning' ? 'bg-warning text-dark' : 'bg-dark');
+      const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+      toast.show();
+    }
+
+    async function updateGlobalStatus() {
+      try {
+        const res = await fetch('/api/safety-check');
+        const data = await res.json();
+        const badge = document.getElementById('global-system-status');
+        if (data.safe) {
+          badge.className = 'badge-status badge-safe';
+          badge.innerHTML = '<i class="bi bi-shield-check"></i> System SAFE';
+        } else {
+          badge.className = 'badge-status badge-unsafe';
+          badge.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> System UNSAFE';
+        }
+      } catch (e) {
+        console.error('Status fetch failed', e);
+      }
+    }
+
+    async function quickReset() {
+      if (!confirm('Reset simulation to the default textbook safe scenario?')) return;
+      try {
+        const res = await fetch('/api/simulation/reset', { method: 'POST' });
+        const data = await res.json();
+        showToast(data.message || 'Simulation reset.', 'success');
+        setTimeout(() => location.reload(), 600);
+      } catch (err) {
+        showToast('Reset failed: ' + err, 'error');
+      }
+    }
+
+    async function runDemo(demoType) {
+      showToast('Loading viva demo scenario: ' + demoType, 'info');
+      let scenarioKey = 'safe_state';
+      let redirectUrl = '/';
+
+      if (demoType === 'safe') {
+        scenarioKey = 'safe_state';
+        redirectUrl = '/safety';
+      } else if (demoType === 'unsafe') {
+        scenarioKey = 'unsafe_state';
+        redirectUrl = '/safety';
+      } else if (demoType === 'deadlock') {
+        scenarioKey = 'two_process_deadlock';
+        redirectUrl = '/deadlock-detection';
+      } else if (demoType === 'circular_deadlock') {
+        scenarioKey = 'three_process_deadlock';
+        redirectUrl = '/graphs';
+      } else if (demoType === 'request') {
+        scenarioKey = 'accepted_request';
+        redirectUrl = '/resource-request';
+      } else if (demoType === 'recovery') {
+        scenarioKey = 'deadlock_recovery';
+        redirectUrl = '/deadlock-detection';
+      }
+
+      try {
+        const res = await fetch('/api/scenarios/load', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario_id: scenarioKey })
+        });
+        const data = await res.json();
+        if (data.success) {
+          window.location.href = redirectUrl;
+        } else {
+          showToast(data.error || 'Failed to load demo scenario.', 'error');
+        }
+      } catch (err) {
+        showToast('Demo load error: ' + err, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateGlobalStatus();
+    });
+  </script>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Safety Analysis - Deadlock-Safe Task Manager{% endblock %}
+{% block page_title %}Banker's Algorithm: Safety Analysis{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="card p-3 shadow-sm">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+          <h6 class="fw-bold mb-1"><i class="bi bi-shield-check text-primary me-2"></i>Banker's Safety Algorithm</h6>
+          <p class="small text-muted mb-0">
+            Evaluates whether current resource allocations and claims allow at least one execution sequence where all processes run to completion without deadlocking.
+          </p>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-primary px-4 fw-semibold" id="btn-run-safety" onclick="runSafetyAnalysis()">
+            <i class="bi bi-play-circle-fill me-1"></i> RUN SAFETY ALGORITHM
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Safety Result Banner -->
+<div class="row mb-4 d-none" id="safety-result-banner">
+  <div class="col-12">
+    <div class="card p-3 shadow-sm border-0" id="safety-banner-card">
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <h4 class="fw-bold mb-1" id="safety-banner-title">SAFE STATE</h4>
+          <div class="fs-5" id="safety-banner-sequence"></div>
+        </div>
+        <div class="display-4" id="safety-banner-icon"><i class="bi bi-check-circle"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step-by-Step Execution Trace -->
+<div class="row g-3">
+  <div class="col-12 col-lg-8">
+    <div class="card p-3 shadow-sm h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0"><i class="bi bi-list-ol me-2 text-dark"></i>Step-by-Step Algorithm Trace</h6>
+        <span class="badge bg-secondary-subtle text-secondary" id="trace-step-count">0 Steps</span>
+      </div>
+
+      <div id="safety-trace-container">
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-play-circle display-4 text-secondary mb-3 d-block"></i>
+          Click <strong>RUN SAFETY ALGORITHM</strong> to compute the state and generate the step-by-step trace.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Educational Reference Sidebar -->
+  <div class="col-12 col-lg-4">
+    <div class="card p-3 shadow-sm mb-3">
+      <h6 class="fw-bold mb-2"><i class="bi bi-info-circle me-2 text-info"></i>Algorithm Summary</h6>
+      <div class="small text-muted">
+        <p class="mb-2"><strong>1. Initialization:</strong></p>
+        <code class="d-block bg-light p-2 rounded mb-2">Work = Available<br>Finish[i] = false (for all i)</code>
+
+        <p class="mb-2"><strong>2. Find process <em>P<sub>i</sub></em> where:</strong></p>
+        <code class="d-block bg-light p-2 rounded mb-2">Finish[i] == false AND Need[i] &le; Work</code>
+
+        <p class="mb-2"><strong>3. If found, simulate completion:</strong></p>
+        <code class="d-block bg-light p-2 rounded mb-2">Work = Work + Allocation[i]<br>Finish[i] = true<br>Append P<sub>i</sub> to safe sequence</code>
+
+        <p class="mb-2"><strong>4. Repeat Step 2 until:</strong></p>
+        <ul class="ps-3 mb-0">
+          <li>All processes finish &rarr; <strong>SAFE STATE</strong></li>
+          <li>No process can finish &rarr; <strong>UNSAFE STATE</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Live Available Vector summary -->
+    <div class="card p-3 shadow-sm">
+      <h6 class="fw-bold mb-2"><i class="bi bi-hdd-network me-2 text-success"></i>Current Available Vector</h6>
+      <div id="safety-available-summary" class="small text-muted">Loading...</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/safety.js') }}"></script>
+{% endblock %}

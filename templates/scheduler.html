@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% block title %}Deadlock-Aware CPU Scheduler - Deadlock-Safe Task Manager{% endblock %}
+{% block page_title %}CPU & Task Scheduler{% endblock %}
+
+{% block content %}
+<!-- Top KPI Telemetry Cards -->
+<div class="row g-3 mb-4">
+  <!-- System Clock Card -->
+  <div class="col-12 col-md-6 col-lg-3">
+    <div class="card card-stat p-3 h-100 border-start border-4 border-primary">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="stat-title">Clock</div>
+          <div class="stat-value mt-1" id="sched-clock">T = 0</div>
+        </div>
+        <div class="stat-icon text-primary"><i class="bi bi-stopwatch"></i></div>
+      </div>
+      <div class="small text-muted mt-2" id="sched-policy-sub">Policy: Round Robin (q=2)</div>
+    </div>
+  </div>
+
+  <!-- CPU Dispatcher Status Card -->
+  <div class="col-12 col-md-6 col-lg-3">
+    <div class="card card-stat p-3 h-100 border-start border-4 border-success">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="stat-title">CPU Dispatcher</div>
+          <div class="stat-value mt-1" id="sched-current-task">IDLE</div>
+        </div>
+        <div class="stat-icon text-success"><i class="bi bi-cpu-fill"></i></div>
+      </div>
+      <div class="small text-muted mt-2" id="sched-cpu-sub">Waiting for execution</div>
+    </div>
+  </div>
+
+  <!-- Deadlock Prevention & Safety Card -->
+  <div class="col-12 col-md-6 col-lg-3">
+    <div class="card card-stat p-3 h-100 border-start border-4 border-warning">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="stat-title">Deadlocks Averted</div>
+          <div class="stat-value mt-1" id="sched-averted-count">0</div>
+        </div>
+        <div class="stat-icon text-warning"><i class="bi bi-shield-fill-check"></i></div>
+      </div>
+      <div class="small text-muted mt-2" id="sched-safety-mode">Mode: Deadlock-Aware (Banker's)</div>
+    </div>
+  </div>
+
+  <!-- Starvation & Aging Card -->
+  <div class="col-12 col-md-6 col-lg-3">
+    <div class="card card-stat p-3 h-100 border-start border-4 border-info">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="stat-title">Aging & Starvation</div>
+          <div class="stat-value mt-1" id="sched-aging-count">0 Boosted</div>
+        </div>
+        <div class="stat-icon text-info"><i class="bi bi-person-up"></i></div>
+      </div>
+      <div class="small text-muted mt-2" id="sched-anomaly-sub">0 Critical Anomalies</div>
+    </div>
+  </div>
+</div>
+
+<!-- Simulation Control Toolbar -->
+<div class="card p-3 mb-4 shadow-sm border-0">
+  <div class="row g-3 align-items-center">
+    <!-- Presets -->
+    <div class="col-12 col-md-3">
+      <label class="form-label small fw-bold text-muted mb-1">Workload Scenario</label>
+      <select class="form-select form-select-sm" id="sched-preset-select">
+        <option value="balanced" selected>Balanced Multi-Process (4 Tasks, 3 Resources)</option>
+        <option value="naive_vs_safe">Deadlock Showdown (Circular Contention)</option>
+        <option value="starvation_demo">Starvation & Aging Demo</option>
+        <option value="database">Load From Current Database State</option>
+      </select>
+    </div>
+
+    <!-- Scheduling Policy -->
+    <div class="col-6 col-md-2">
+      <label class="form-label small fw-bold text-muted mb-1">Scheduling Policy</label>
+      <select class="form-select form-select-sm" id="sched-policy-select">
+        <option value="RR" selected>Round Robin (RR)</option>
+        <option value="SRTF">Shortest Remaining Time (SRTF)</option>
+        <option value="PRIORITY">Preemptive Priority</option>
+        <option value="FCFS">First-Come, First-Served (FCFS)</option>
+      </select>
+    </div>
+
+    <!-- Time Quantum -->
+    <div class="col-6 col-md-1" id="quantum-col">
+      <label class="form-label small fw-bold text-muted mb-1">Quantum (q)</label>
+      <input type="number" class="form-control form-control-sm" id="sched-quantum-input" min="1" max="10" value="2">
+    </div>
+
+    <!-- Mode Toggle (Deadlock-Aware vs Naive) -->
+    <div class="col-12 col-md-2">
+      <label class="form-label small fw-bold text-muted mb-1">Resource Guard</label>
+      <select class="form-select form-select-sm" id="sched-mode-select">
+        <option value="DEADLOCK_AWARE" selected>🛡️ Deadlock-Aware (Banker's)</option>
+        <option value="NAIVE">⚠️ Naive (No Safety Intercept)</option>
+      </select>
+    </div>
+
+    <!-- Execution Controls -->
+    <div class="col-12 col-md-4 text-md-end">
+      <label class="form-label small fw-bold text-muted mb-1 d-none d-md-block">&nbsp;</label>
+      <div class="btn-group btn-group-sm w-100 w-md-auto" role="group">
+        <button type="button" class="btn btn-primary" id="btn-step" title="Advance 1 clock tick">
+          <i class="bi bi-chevron-right me-1"></i> Step (+1)
+        </button>
+        <button type="button" class="btn btn-success" id="btn-play" title="Auto-run simulation">
+          <i class="bi bi-play-fill me-1"></i> Play
+        </button>
+        <button type="button" class="btn btn-secondary d-none" id="btn-pause" title="Pause auto-run">
+          <i class="bi bi-pause-fill me-1"></i> Pause
+        </button>
+        <button type="button" class="btn btn-outline-dark" id="btn-run-all" title="Simulate to completion">
+          <i class="bi bi-fast-forward-fill me-1"></i> Run All
+        </button>
+        <button type="button" class="btn btn-outline-danger" id="btn-reset" title="Reset simulation">
+          <i class="bi bi-arrow-counterclockwise"></i> Reset
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Gantt Chart Timeline View -->
+<div class="card p-3 mb-4 shadow-sm">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <h6 class="fw-bold mb-0"><i class="bi bi-bar-chart-steps me-2 text-primary"></i>Interactive Execution Gantt Chart</h6>
+      <span class="badge bg-light text-dark border" id="gantt-tick-count">0 ticks recorded</span>
+    </div>
+    <!-- Legend -->
+    <div class="d-flex flex-wrap gap-2 small">
+      <span><span class="badge bg-primary">&nbsp;</span> CPU Running</span>
+      <span><span class="badge bg-warning text-dark">&nbsp;</span> Banker's Blocked (Safety)</span>
+      <span><span class="badge bg-danger">&nbsp;</span> Deadlock Stall</span>
+      <span><span class="badge bg-secondary opacity-50">&nbsp;</span> CPU Idle</span>
+    </div>
+  </div>
+
+  <!-- Scrollable Gantt Track -->
+  <div class="gantt-scroll-wrapper" id="gantt-container">
+    <div class="gantt-track" id="gantt-track">
+      <div class="text-muted p-3 small">Ready. Click <strong>Step (+1)</strong> or <strong>Play</strong> to begin execution ticks.</div>
+    </div>
+  </div>
+
+  <!-- Selected Slot Inspector -->
+  <div class="mt-2 p-2 bg-light rounded small border d-none" id="gantt-slot-inspector">
+    <span class="fw-bold text-primary" id="inspector-tick">T=0</span>: 
+    <span id="inspector-desc">Select any block on the Gantt timeline to inspect process events.</span>
+  </div>
+</div>
+
+<!-- Main Process Execution & Anomaly Matrix -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-xl-8">
+    <div class="card p-3 shadow-sm h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0"><i class="bi bi-table me-2 text-dark"></i>Process Execution & Behavioral Anomaly Matrix</h6>
+        <div class="form-check form-switch small">
+          <input class="form-check-input" type="checkbox" id="aging-toggle" checked>
+          <label class="form-check-label text-muted" for="aging-toggle">Dynamic Aging Enabled</label>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+          <thead class="table-light">
+            <tr>
+              <th>PID</th>
+              <th>Name</th>
+              <th>State</th>
+              <th>Burst Progress</th>
+              <th>Priority</th>
+              <th>Held Resources</th>
+              <th>Starvation</th>
+              <th>Behavior & Greed</th>
+            </tr>
+          </thead>
+          <tbody id="sched-tasks-tbody">
+            <tr><td colspan="8" class="text-center py-3 text-muted">Loading tasks...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Dual-Engine Terminal Log -->
+  <div class="col-12 col-xl-4">
+    <div class="card p-3 shadow-sm h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0"><i class="bi bi-terminal-fill me-2 text-info"></i>Dual-Engine Live Inspector</h6>
+        <span class="badge bg-dark font-monospace" style="font-size: 0.7rem;">Live Kernel Feed</span>
+      </div>
+      <div class="scheduler-log-feed" id="scheduler-logs">
+        <div class="text-muted small">[T=00] Scheduler initialized. Ready to initiate.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Performance Metrics & Post-Simulation Evaluation -->
+<div class="row g-3">
+  <div class="col-12 col-md-6 col-lg-3">
+    <div class="card p-3 shadow-sm border-0 bg-light text-center">
+      <div class="text-muted small fw-bold">CPU Utilization</div>
+      <div class="fs-4 fw-bold text-dark mt-1" id="metric-cpu-util">0%</div>
+      <div class="small text-muted">Active execution / Total clock</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-lg-3">
+    <div class="card p-3 shadow-sm border-0 bg-light text-center">
+      <div class="text-muted small fw-bold">Avg Turnaround Time</div>
+      <div class="fs-4 fw-bold text-primary mt-1" id="metric-turnaround">0.00 ticks</div>
+      <div class="small text-muted">Arrival to completion</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-lg-3">
+    <div class="card p-3 shadow-sm border-0 bg-light text-center">
+      <div class="text-muted small fw-bold">Avg Waiting Time</div>
+      <div class="fs-4 fw-bold text-warning text-dark mt-1" id="metric-waiting">0.00 ticks</div>
+      <div class="small text-muted">Time spent waiting</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-lg-3">
+    <div class="card p-3 shadow-sm border-0 bg-light text-center">
+      <div class="text-muted small fw-bold">Context Switches</div>
+      <div class="fs-4 fw-bold text-success mt-1" id="metric-context-switches">0</div>
+      <div class="small text-muted">CPU task reassignments</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/scheduler.js') }}"></script>
+{% endblock %}

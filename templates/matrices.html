@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}System Matrices - Deadlock-Safe Task Manager{% endblock %}
+{% block page_title %}Operating Systems Matrices & Vectors{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <!-- Available Vector Card -->
+    <div class="card p-3 shadow-sm border-start border-4 border-success">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="fw-bold mb-0 text-success"><i class="bi bi-hdd-stack me-2"></i>Available Vector [Available]</h6>
+        <span class="small text-muted">Currently unallocated instances ready for distribution</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm matrix-table mb-0 text-center">
+          <thead class="table-success" id="avail-matrix-head"></thead>
+          <tbody id="avail-matrix-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Allocation Matrix -->
+  <div class="col-12 col-xl-6">
+    <div class="card p-3 shadow-sm h-100">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="fw-bold mb-0"><i class="bi bi-diagram-2 me-2 text-primary"></i>Allocation Matrix [Allocation]</h6>
+        <span class="badge bg-primary-subtle text-primary">Currently Held</span>
+      </div>
+      <p class="small text-muted mb-2">Number of instances of each resource currently allocated to each process.</p>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm matrix-table text-center">
+          <thead class="table-light" id="alloc-matrix-head"></thead>
+          <tbody id="alloc-matrix-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Maximum Matrix -->
+  <div class="col-12 col-xl-6">
+    <div class="card p-3 shadow-sm h-100">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="fw-bold mb-0"><i class="bi bi-graph-up me-2 text-dark"></i>Maximum Demand Matrix [Max]</h6>
+        <span class="badge bg-secondary-subtle text-secondary">Upper Bound</span>
+      </div>
+      <p class="small text-muted mb-2">Maximum demand declared by each process before execution begins.</p>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm matrix-table text-center">
+          <thead class="table-light" id="max-matrix-head"></thead>
+          <tbody id="max-matrix-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Need Matrix -->
+  <div class="col-12">
+    <div class="card p-3 shadow-sm border-start border-4 border-warning">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <h6 class="fw-bold mb-0 text-warning"><i class="bi bi-calculator me-2"></i>Remaining Need Matrix [Need]</h6>
+          <small class="text-muted">Calculated dynamically as: <code>Need[i][j] = Maximum[i][j] - Allocation[i][j]</code></small>
+        </div>
+        <a href="{{ url_for('algorithms_page.safety_view') }}" class="btn btn-sm btn-outline-warning">
+          <i class="bi bi-play-circle me-1"></i> Run Safety Analysis
+        </a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm matrix-table text-center">
+          <thead class="table-warning" id="need-matrix-head"></thead>
+          <tbody id="need-matrix-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/matrices.js') }}"></script>
+{% endblock %}

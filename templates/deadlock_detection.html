@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block title %}Deadlock Detection - Deadlock-Safe Task Manager{% endblock %}
+{% block page_title %}Deadlock Detection & Recovery Engine{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="card p-3 shadow-sm">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+          <h6 class="fw-bold mb-1"><i class="bi bi-exclamation-octagon text-danger me-2"></i>Multi-Instance Deadlock Detection</h6>
+          <p class="small text-muted mb-0">
+            Executes the Deadlock Detection Algorithm (distinct from Banker's Avoidance). Evaluates active Requests and Allocations without requiring maximum claims.
+          </p>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-danger px-4 fw-semibold" id="btn-run-detection" onclick="runDetection()">
+            <i class="bi bi-search me-1"></i> RUN DEADLOCK DETECTION
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detection Result Banner -->
+<div class="row mb-4 d-none" id="detection-result-banner">
+  <div class="col-12">
+    <div class="card p-3 shadow-sm border-0" id="detection-banner-card">
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <h4 class="fw-bold mb-1" id="detection-banner-title">NO DEADLOCK</h4>
+          <div class="fs-6" id="detection-banner-sub"></div>
+        </div>
+        <div class="display-4" id="detection-banner-icon"><i class="bi bi-check-circle"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Deadlock Recovery Panel (shown if deadlock detected) -->
+  <div class="col-12 d-none" id="recovery-panel">
+    <div class="card p-3 shadow-sm border-danger border-2">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold text-danger mb-0"><i class="bi bi-wrench-adjustable me-2"></i>Deadlock Recovery Strategies</h6>
+        <span class="badge bg-danger">Action Required</span>
+      </div>
+      <p class="small text-muted mb-3">Select a recovery strategy to break the circular wait and restore system throughput:</p>
+
+      <div class="row g-3">
+        <!-- Option 1: Terminate Process -->
+        <div class="col-md-6">
+          <div class="border rounded p-3 bg-light h-100">
+            <h6 class="fw-bold text-dark"><i class="bi bi-stop-circle text-danger me-1"></i> Strategy 1: Process Termination</h6>
+            <p class="small text-muted mb-2">Reclaims all resources held by the terminated process and cancels its requests.</p>
+            <div class="input-group mb-2">
+              <select class="form-select form-select-sm" id="terminate-victim-select"></select>
+              <button class="btn btn-sm btn-danger" onclick="terminateVictim()">Terminate Victim</button>
+            </div>
+            <button class="btn btn-sm btn-outline-danger w-100" onclick="terminateAllDeadlocked()">
+              Terminate All Deadlocked Processes
+            </button>
+          </div>
+        </div>
+
+        <!-- Option 2: Simulated Preemption -->
+        <div class="col-md-6">
+          <div class="border rounded p-3 bg-light h-100">
+            <h6 class="fw-bold text-dark"><i class="bi bi-arrow-left-right text-primary me-1"></i> Strategy 2: Resource Preemption (Simulation)</h6>
+            <p class="small text-muted mb-2">Simulate forcibly taking a resource from a holder and allocating it to a waiting process.</p>
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <label class="form-label small mb-0">Victim (Holder)</label>
+                <select class="form-select form-select-sm" id="preempt-victim-select"></select>
+              </div>
+              <div class="col-6">
+                <label class="form-label small mb-0">Target (Requester)</label>
+                <select class="form-select form-select-sm" id="preempt-target-select"></select>
+              </div>
+            </div>
+            <div class="input-group">
+              <select class="form-select form-select-sm" id="preempt-resource-select"></select>
+              <button class="btn btn-sm btn-primary" onclick="simulatePreemption()">Simulate Preemption</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detection Traces & Vectors -->
+<div class="row g-3">
+  <!-- Trace Steps -->
+  <div class="col-12 col-lg-8">
+    <div class="card p-3 shadow-sm h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0"><i class="bi bi-list-check me-2"></i>Detection Algorithm Execution Trace</h6>
+        <span class="badge bg-secondary-subtle text-secondary" id="detection-step-count">0 Steps</span>
+      </div>
+      <div id="detection-trace-container">
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-search display-4 text-secondary mb-3 d-block"></i>
+          Click <strong>RUN DEADLOCK DETECTION</strong> to trace the algorithm.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Finish Vector & Work State -->
+  <div class="col-12 col-lg-4">
+    <div class="card p-3 shadow-sm mb-3">
+      <h6 class="fw-bold mb-2"><i class="bi bi-check2-square me-2 text-primary"></i>Finish &amp; Work Vectors</h6>
+      <div id="finish-vector-display" class="small text-muted">
+        Vectors will populate after running detection.
+      </div>
+    </div>
+
+    <div class="card p-3 shadow-sm">
+      <h6 class="fw-bold mb-2"><i class="bi bi-lightbulb me-2 text-warning"></i>Detection Algorithm Rules</h6>
+      <div class="small text-muted">
+        <p class="mb-1"><strong>1. Initialization:</strong></p>
+        <code class="d-block bg-light p-2 rounded mb-2">Work = Available<br>Finish[i] = (Allocation[i] == 0)</code>
+        <p class="mb-1"><strong>2. Find process P<sub>i</sub>:</strong></p>
+        <code class="d-block bg-light p-2 rounded mb-2">Finish[i] == false AND Request[i] &le; Work</code>
+        <p class="mb-1"><strong>3. Simulate Release:</strong></p>
+        <code class="d-block bg-light p-2 rounded mb-2">Work = Work + Allocation[i]<br>Finish[i] = true</code>
+        <p class="mb-1"><strong>4. Identify:</strong></p>
+        <div class="small">Any process where <code>Finish[i] == false</code> is permanently <strong>deadlocked</strong>.</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/deadlock_detection.js') }}"></script>
+{% endblock %}

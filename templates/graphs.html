@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}System Graphs - Deadlock-Safe Task Manager{% endblock %}
+{% block page_title %}Resource Allocation & Wait-For Graphs{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-12">
+    <div class="card p-3 shadow-sm">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <!-- Graph Type Selector Tabs -->
+        <ul class="nav nav-pills" id="graph-tabs">
+          <li class="nav-item">
+            <button class="nav-link active fw-semibold" id="tab-rag-btn" onclick="switchGraph('rag')">
+              <i class="bi bi-diagram-3 me-1"></i> Resource Allocation Graph (RAG)
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link fw-semibold" id="tab-wfg-btn" onclick="switchGraph('wfg')">
+              <i class="bi bi-arrow-left-right me-1"></i> Wait-For Graph (WFG)
+            </button>
+          </li>
+        </ul>
+
+        <!-- Cytoscape Controls -->
+        <div class="btn-group btn-group-sm">
+          <button class="btn btn-outline-secondary" onclick="fitGraph()" title="Fit View">
+            <i class="bi bi-arrows-fullscreen"></i> Fit
+          </button>
+          <button class="btn btn-outline-secondary" onclick="zoomIn()" title="Zoom In">
+            <i class="bi bi-zoom-in"></i>
+          </button>
+          <button class="btn btn-outline-secondary" onclick="zoomOut()" title="Zoom Out">
+            <i class="bi bi-zoom-out"></i>
+          </button>
+          <button class="btn btn-outline-secondary" onclick="relayoutGraph()" title="Re-organize Layout">
+            <i class="bi bi-shuffle"></i> Layout
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Graph Container and Side Information Panel -->
+<div class="row g-3">
+  <div class="col-12 col-xl-9">
+    <div class="card p-2 shadow-sm position-relative">
+      <!-- Cytoscape Canvas -->
+      <div id="cy-container"></div>
+      
+      <!-- Graph Legend Overlay -->
+      <div class="position-absolute bottom-0 start-0 m-3 p-2 bg-white bg-opacity-90 rounded border small shadow-sm" style="z-index: 10;">
+        <div class="fw-bold mb-1">Graph Legend</div>
+        <div class="d-flex align-items-center gap-3">
+          <div class="d-flex align-items-center gap-1">
+            <span style="display:inline-block; width:12px; height:12px; background:#2563eb; border-radius:50%;"></span> Process Node
+          </div>
+          <div class="d-flex align-items-center gap-1">
+            <span style="display:inline-block; width:12px; height:12px; background:#10b981; border-radius:3px;"></span> Resource Node
+          </div>
+          <div class="d-flex align-items-center gap-1">
+            <span style="display:inline-block; width:12px; height:12px; background:#ef4444; border-radius:50%;"></span> Deadlocked / Cycle
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Graph Insights & Cycle Detection Panel -->
+  <div class="col-12 col-xl-3">
+    <!-- Cycles Card -->
+    <div class="card p-3 shadow-sm mb-3">
+      <h6 class="fw-bold mb-2"><i class="bi bi-arrow-repeat text-danger me-2"></i>Deadlock Cycles</h6>
+      <div id="cycle-alert-container">
+        <span class="text-muted small">Evaluating cycles...</span>
+      </div>
+    </div>
+
+    <!-- Node Details Inspector -->
+    <div class="card p-3 shadow-sm">
+      <h6 class="fw-bold mb-2"><i class="bi bi-info-circle me-2 text-primary"></i>Node Details</h6>
+      <div id="node-inspector" class="small text-muted">
+        Click any node in the graph above to view its live status, allocations, and requests.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/graphs.js') }}"></script>
+{% endblock %}
